@@ -59,6 +59,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: java-app
+        path: ./Back/oti/build/libs
 
     - name: 'Deploy to Azure WebApp'
       id: deploy-to-webapp
