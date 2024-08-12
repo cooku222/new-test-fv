@@ -54,9 +54,6 @@ jobs:
           name: java-app
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: List files
-        run: ls -R
-
       - name: 'Deploy to Azure WebApp'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
