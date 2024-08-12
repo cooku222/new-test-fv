@@ -51,16 +51,9 @@ jobs:
           name: flutter-web-app
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: Set output for web directory
-        id: build
-        run: echo "::set-output name=web_directory_exists::$(if [ -d "./Front/build/web" ]; then echo 'true'; else echo 'false'; fi)"
-
-      - name: check path
-        run: ls -R
-        
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: flutter-web-app
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
