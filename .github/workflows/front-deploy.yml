@@ -55,6 +55,9 @@ jobs:
         id: build
         run: echo "::set-output name=web_directory_exists::$(if [ -d "./Front/build/web" ]; then echo 'true'; else echo 'false'; fi)"
 
+      - name: check path
+        run: ls -R
+        
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
