@@ -1,0 +1,75 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main  # 배포할 브랜치 이름
+    paths:
+      - 'Front/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.3'
+
+      - name: Change to Front directory
+        run: cd Front
+
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: ./Front
+
+      - name: Build Flutter web
+        run: flutter build web
+        working-directory: ./Front
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-web-app
+          path: ./Front/build/web/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    environment: 'production'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v2
+        with:
+          name: flutter-web-app
+          path: flutter-web-app
+
+      - name: Check if web directory exists
+        if: success() && (steps.build.outputs.web_directory_exists == 'true')
+        run: ls -la ./Front/build/web
+
+      - name: Set output for web directory
+        id: build
+        run: echo "::set-output name=web_directory_exists::$(if [ -d "./Front/build/web" ]; then echo 'true'; else echo 'false'; fi)"
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'dankook2021'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: flutter-web-app
