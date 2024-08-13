@@ -1,125 +1,239 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:untitled/screens/in_bus.dart';
+import 'package:untitled/screens/in_walk.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: RouteRequestScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class RouteRequestScreen extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _RouteRequestScreenState createState() => _RouteRequestScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _RouteRequestScreenState extends State<RouteRequestScreen> {
+  Map<String, dynamic>? data;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentLocationAndRequestAPI();
+  }
+
+  Future<void> _fetchCurrentLocationAndRequestAPI() async {
+    try {
+      // 현재 위치 가져오기
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      double startX = position.longitude;
+      double startY = position.latitude;
+
+      // 경희대학교 위치 (고정된 값)
+      double endX = 127.053176; // 경희대학교 경도
+      double endY = 37.595898;  // 경희대학교 위도
+
+      // API 요청 보내기
+      String response = await _sendAPIRequest(startX, startY, endX, endY);
+
+      setState(() {
+        data = jsonDecode(utf8.decode(response.codeUnits));
+      });
+
+      // 콘솔에 출력 (한국어 깨짐 방지)
+      print(utf8.decode(response.codeUnits));
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  Future<String> _sendAPIRequest(double startX, double startY, double endX, double endY) async {
+    const String url = 'https://apis.openapi.sk.com/transit/routes';
+    const String appKey = 'kPCSlwhXnb27HE1RN6dNC76vJnICEaGv1JeZP1Ck';
+
+    Map<String, String> headers = {
+      'accept': 'application/json',
+      'appKey': appKey,
+      'content-type': 'application/json',
+    };
+
+    Map<String, dynamic> body = {
+      'startX': startX.toString(),
+      'startY': startY.toString(),
+      'endX': endX.toString(),
+      'endY': endY.toString(),
+      'count': 1,
+      'lang': 0,
+      'format': 'json',
+    };
+
+    http.Response response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    if (data != null) {
+      return RouteScreen(data: data!);
+    } else {
+      return Scaffold(
+        appBar: AppBar(
+          title: Center(
+            child: Text(
+              '일상이상',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // 글씨를 볼드체로
+              ),
+            ),
+          ), // 제목을 중간 정렬 및 볼드체로
+        ),
+        backgroundColor: Colors.white, // 배경색 흰색으로 설정
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+  }
+}
+
+class RouteScreen extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  RouteScreen({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    final itineraries = data['metaData']['plan']['itineraries'];
+    if (itineraries == null || itineraries.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Center(
+            child: Text(
+              '일상이상',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // 글씨를 볼드체로
+              ),
+            ),
+          ), // 제목을 중간 정렬 및 볼드체로
+        ),
+        backgroundColor: Colors.white, // 배경색 흰색으로 설정
+        body: Center(
+          child: Text(
+            'No itineraries found.',
+            style: TextStyle(
+              fontWeight: FontWeight.bold, // 글씨를 볼드체로
+            ),
+          ),
+        ),
+      );
+    }
+
+    List<dynamic> legs = itineraries[0]['legs'];
+    if (legs == null || legs.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Center(
+            child: Text(
+              '일상이상',
+              style: TextStyle(
+                fontWeight: FontWeight.bold, // 글씨를 볼드체로
+              ),
+            ),
+          ), // 제목을 중간 정렬 및 볼드체로
+        ),
+        backgroundColor: Colors.white, // 배경색 흰색으로 설정
+        body: Center(
+          child: Text(
+            'No legs found.',
+            style: TextStyle(
+              fontWeight: FontWeight.bold, // 글씨를 볼드체로
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+        title: Center(
+          child: Text(
+            '일상이상',
+            style: TextStyle(
+              fontWeight: FontWeight.bold, // 글씨를 볼드체로
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
+          ),
+        ), // 제목을 중간 정렬 및 볼드체로
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      backgroundColor: Colors.white, // 배경색 흰색으로 설정
+      body: ListView.builder(
+        itemCount: legs.length,
+        itemBuilder: (context, index) {
+          String mode = legs[index]['mode'];
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black, width: 2), // 버튼 테두리를 검정색으로 설정
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ListTile(
+              title: Text(
+                mode == 'WALK'
+                    ? '걷기' // mode가 WALK인 경우 "걷기"로 표시
+                    : mode == 'BUS'
+                    ? '버스 타기' // mode가 BUS인 경우 "버스 타기"로 표시
+                    : 'Mode: $mode',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, // 글씨를 볼드체로
+                ),
+              ),
+              onTap: () {
+                if (mode == 'WALK') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InWalk(
+                        steps: legs[index]['steps'],
+                      ),
+                    ),
+                  );
+                } else if (mode == 'BUS' || mode == 'SUBWAY') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InBus(
+                        stationList: legs[index]['passStopList']['stationList'],
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

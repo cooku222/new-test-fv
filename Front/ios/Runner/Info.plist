@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -20,9 +22,26 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>kakao</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakaoe882c1f00f4a3a621ca86edec567abd5</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>KAKAO_APP_KEY</key>
+	<string>e882c1f00f4a3a621ca86edec567abd5</string>
 	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -41,9 +60,22 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+
+	<key>NMFClientId</key>
+    <string>jeq8u0hgv3</string>
+    <key>NaverClientSecret</key>
+    <string>PAeZidawf2mTPQL7LbhT0PsKgpIO3I4Bwh8A94qa</string>
+
+    <key>DaumMapApiKey</key>
+    <string>f71c36399cf870fbd1f368ace67701b8</string>
+
+    <key>NSMotionUsageDescription</key>
+    <string>걸음 수를 측정하기 위해 모션 데이터를 사용합니다.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>앱이 백그라운드에서도 위치 정보를 사용합니다.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>앱이 포그라운드와 백그라운드 모두에서 위치 정보를 사용합니다.</string>
+
+
 </dict>
 </plist>
