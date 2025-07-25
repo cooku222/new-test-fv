@@ -1,17 +1,6 @@
-# untitled
+# 🧓 용인시 노인 길안내 애플리케이션
 
-A new Flutter project.
+이 프로젝트는 **K-HTML 해커톤** 제출을 위해 개발된 용인시 대상 **노인 맞춤형 길안내 애플리케이션**입니다.  
+고령자의 이동 편의를 돕기 위해 **간단한 UI**, **음성 안내**, **지도 경로 시각화** 기능 등을 포함하고 있습니다.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+> 📍 용인시 실사용을 전제로 기획된 공공복지 기반 앱입니다.
